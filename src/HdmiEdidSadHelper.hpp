@@ -20,6 +20,7 @@
 #include "AudioFormat.hpp"
 #include "Buffer.hpp"
 #include <vector>
+#include <string>
 
 class HdmiEdidSadHelper
 {
@@ -28,6 +29,7 @@ public:
   static std::vector<AudioFormat::CHANNEL> getAudioChannelFromSad(ByteBuffer aSadPacket);
   static std::vector<int> getAudioSamplingRatesFromSad(ByteBuffer aSadPacket);
   static std::vector<AudioFormat> getAudioFormatsFromSad(ByteBuffer aSadPacket);
+  static std::vector<std::string> getAdditionalCapabilities(ByteBuffer aSadPacket);
 };
 
 #endif /* __HDMI_EDID_SAD_HELPER_HPP__ */

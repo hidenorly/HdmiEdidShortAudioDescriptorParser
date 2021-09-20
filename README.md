@@ -41,6 +41,16 @@ encoding:PCM_24BIT channel:1 samplingRate:192000
 encoding:PCM_24BIT channel:2 samplingRate:192000
 ```
 
+```
+$ bin/sadParser -s 11,04,20
+encoding:COMPRESSED_14 channel:1 samplingRate:48000
+encoding:COMPRESSED_14 channel:2 samplingRate:48000
+bitRate=256000
+```
+
+Note that COMPRESSED_14 means AudioFormat::ENCODING::COMPRESSED_AC3.
+
+
 # Please note that
 
 You may need to set LD_LIBRARY_PATH
