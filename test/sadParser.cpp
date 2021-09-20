@@ -42,9 +42,9 @@ int main(int argc, char** argv)
       std::cout << aFormat.toString() << std::endl;
     }
     if( ( formats.size() > 0 ) && !formats[0].isEncodingPcm() ){
-      std::vector<std::string> addionalCapabilities = HdmiEdidSadHelper::getAdditionalCapabilities( aSadPacket );
-      for( auto& aCapability : addionalCapabilities ){
-        std::cout << aCapability << std::endl;
+      std::map<std::string, std::string> addionalCapabilities = HdmiEdidSadHelper::getAdditionalCapabilities( aSadPacket );
+      for( auto& [aCapKey, aCapValue] : addionalCapabilities ){
+        std::cout << aCapKey << " = " << aCapValue << std::endl;
       }
     }
   }

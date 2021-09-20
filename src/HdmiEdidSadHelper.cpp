@@ -134,15 +134,15 @@ std::vector<AudioFormat> HdmiEdidSadHelper::getAudioFormatsFromSad(ByteBuffer aS
   return result;
 }
 
-std::vector<std::string> HdmiEdidSadHelper::getAdditionalCapabilities(ByteBuffer aSadPacket)
+std::map<std::string, std::string> HdmiEdidSadHelper::getAdditionalCapabilities(ByteBuffer aSadPacket)
 {
-  std::vector<std::string> result;
+  std::map<std::string, std::string> result;
 
   if( aSadPacket.size() == HDMI_EDID_SAD_LENGTH ){
     std::vector<AudioFormat::ENCODING> encodings = getAudioEncodingsFromSad( aSadPacket );
     if( encodings.size() == 1 && !AudioFormat::isEncodingPcm(encodings[0]) ){
       // not PCM
-      result.push_back( std::string("bitRate=") + std::to_string( (int)aSadPacket[2] * HDMI_EDID_SAD_BIT_RATE_DIVIDER ) );
+      result.insert_or_assign("bitRate", std::to_string( (int)aSadPacket[2] * HDMI_EDID_SAD_BIT_RATE_DIVIDER ) );
     }
   }
 
