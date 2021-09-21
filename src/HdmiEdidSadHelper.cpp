@@ -17,6 +17,15 @@
 #include "HdmiEdidSadHelper.hpp"
 #include "HdmiEdidPrimitive.hpp"
 
+
+bool HdmiEdidDataBlock::parseHeader(uint8_t header, HdmiEdidDataBlock::BlockType& blockType, int& nLength)
+{
+  blockType = (HdmiEdidDataBlock::BlockType)( ( header & HDMI_EDID_DATA_BLOCK_TYPE ) >> HDMI_EDID_DATA_BLOCK_TYPE_SHIFT );
+  nLength = ( header & HDMI_EDID_DATA_BLOCK_SIZE );
+
+  return blockType == HdmiEdidDataBlock::BlockType::RESERVED ? false : true;
+}
+
 struct SadEncodingConversionTable
 {
 public:
@@ -25,7 +34,6 @@ public:
 
   SadEncodingConversionTable(int sadEncoding, AudioFormat::ENCODING afwEncoding) : sadEncoding(sadEncoding), afwEncoding(afwEncoding){};
 };
-
 
 std::vector<AudioFormat::ENCODING> HdmiEdidSadHelper::getAudioEncodingsFromSad(ByteBuffer aSadPacket)
 {
@@ -59,6 +67,26 @@ std::vector<AudioFormat::ENCODING> HdmiEdidSadHelper::getAudioEncodingsFromSad(B
       if( conversionTable[i].sadEncoding == sadEncoding ){
         encoding = conversionTable[i].afwEncoding;
         break;
+      }
+    }
+
+    if( ( encoding == AudioFormat::ENCODING::COMPRESSED_UNKNOWN ) && ( sadEncoding == HDMI_EDID_SAD_ENCODING_EXTENDED ) ){
+      const static SadEncodingConversionTable exTable[]=
+      {
+        SadEncodingConversionTable( 4, AudioFormat::ENCODING::COMPRESSED_HE_AAC_V1),
+        SadEncodingConversionTable( 5, AudioFormat::ENCODING::COMPRESSED_HE_AAC_V2),
+        SadEncodingConversionTable( 6, AudioFormat::ENCODING::COMPRESSED_AAC_LC),
+        SadEncodingConversionTable( 7, AudioFormat::ENCODING::COMPRESSED_DRA),
+        SadEncodingConversionTable(12, AudioFormat::ENCODING::COMPRESSED_AC4),
+        SadEncodingConversionTable( 0, AudioFormat::ENCODING::COMPRESSED_UNKNOWN)
+      };
+      int exEncoding = ( aSadPacket[2] & HDMI_EDID_SAD_ENCODING_EXTENDED_MASK ) >> HDMI_EDID_SAD_ENCODING_EXTENDED_SHIFT;
+
+      for(int i=0; (exTable[i].sadEncoding!=0); i++){
+        if( exTable[i].sadEncoding == exEncoding ){
+          encoding = exTable[i].afwEncoding;
+          break;
+        }
       }
     }
 
@@ -140,11 +168,71 @@ std::map<std::string, std::string> HdmiEdidSadHelper::getAdditionalCapabilities(
 
   if( aSadPacket.size() == HDMI_EDID_SAD_LENGTH ){
     std::vector<AudioFormat::ENCODING> encodings = getAudioEncodingsFromSad( aSadPacket );
-    if( encodings.size() == 1 && !AudioFormat::isEncodingPcm(encodings[0]) ){
-      // not PCM
-      result.insert_or_assign("bitRate", std::to_string( (int)aSadPacket[2] * HDMI_EDID_SAD_BIT_RATE_DIVIDER ) );
+    if( encodings.size() == 1 ){
+      AudioFormat::ENCODING theEncoding = encodings[0];
+      if( !AudioFormat::isEncodingPcm( theEncoding ) ){
+        // not PCM, codec specific
+        switch( theEncoding ){
+          case AudioFormat::ENCODING::COMPRESSED_E_AC3:
+            // Thanks the info. https://www.mail-archive.com/linux-media@vger.kernel.org/msg148721.html
+            result.insert_or_assign("JOC", ( aSadPacket[2] & HDMI_EDID_SAD_EXT_E_AC3_JOC ) ? "true" : "false" );
+            result.insert_or_assign("JOC_DolbyAtmos", ( aSadPacket[2] & HDMI_EDID_SAD_EXT_E_AC3_ACMOD28 ) ? "true" : "false" );
+            break;
+          default:
+            result.insert_or_assign("bitRate", std::to_string( (int)aSadPacket[2] * HDMI_EDID_SAD_BIT_RATE_DIVIDER ) );
+            break;
+        }
+      }
     }
   }
 
   return result;
 }
+
+bool HdmiEdidSadHelper::getAdditionalCapabilitiesFromHdmlLLCVsadb(std::map<std::string, std::string>& result, ByteBuffer& aVsadbPacket)
+{
+  bool bFound = false;
+
+  struct HDMI_VSDB_LATENCY
+  {
+    int nOffset;
+    std::string key;
+    HDMI_VSDB_LATENCY(int nOffset, std::string key) : nOffset(nOffset), key(key){};
+  };
+
+  const static HDMI_VSDB_LATENCY table[] =
+  {
+    HDMI_VSDB_LATENCY(HDMI_EDID_VSDB_HDMI_LLC_VIDEO_LATENCY,            "videoLatency"),
+    HDMI_VSDB_LATENCY(HDMI_EDID_VSDB_HDMI_LLC_AUDIO_LATENCY,            "audioLatency"),
+    HDMI_VSDB_LATENCY(HDMI_EDID_VSDB_HDMI_LLC_INTERLACE_VIDEO_LATENCY,  "videoLatencyInterlace"),
+    HDMI_VSDB_LATENCY(HDMI_EDID_VSDB_HDMI_LLC_INTERLACE_AUDIO_LATENCY,  "audioLatencyInterlace"),
+    HDMI_VSDB_LATENCY(-1, "")
+  };
+
+  for( int i = 0, nOffSet = -1; nOffSet = table[i].nOffset, nOffSet != -1; i++ ){
+    if( aVsadbPacket.size() > nOffSet ){
+      result.insert_or_assign( table[i].key, std::to_string( (int)2 * ( aVsadbPacket[ nOffSet ] - 1 ) ) );
+      bFound = true;
+    }
+  }
+
+  return bFound;
+}
+
+std::map<std::string, std::string> HdmiEdidSadHelper::getAdditionalCapabilitiesFromVsadb(uint32_t vsadbId, ByteBuffer aVsadbPacket)
+{
+  std::map<std::string, std::string> result;
+
+  switch( vsadbId ){
+    case HDMI_EDID_VSDB_ID_HDMI_LLC:
+      getAdditionalCapabilitiesFromHdmlLLCVsadb( result, aVsadbPacket );
+      break;
+    case HDMI_EDID_VSDB_ID_HDMI_FORUM:
+    case HDMI_EDID_VSDB_ID_DOLBY_LAB:
+    default:
+      break;
+  }
+
+  return result;
+}
+

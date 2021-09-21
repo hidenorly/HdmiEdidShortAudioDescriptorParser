@@ -23,6 +23,22 @@
 #include <map>
 #include <string>
 
+class HdmiEdidDataBlock
+{
+public:
+  enum BlockType
+  {
+    RESERVED = 0,
+    AUDIO,
+    VIDEO,
+    VENDOR_SPECIFIC,
+    SPEAKER_ALLOCATION,
+    VESA_DISPLAY_TRANSFER_CHARACTERISTIC,
+  };
+
+  bool parseHeader(uint8_t header, BlockType& blockType, int& nLength);
+};
+
 class HdmiEdidSadHelper
 {
 public:
@@ -31,6 +47,8 @@ public:
   static std::vector<int> getAudioSamplingRatesFromSad(ByteBuffer aSadPacket);
   static std::vector<AudioFormat> getAudioFormatsFromSad(ByteBuffer aSadPacket);
   static std::map<std::string, std::string> getAdditionalCapabilities(ByteBuffer aSadPacket);
+  static bool getAdditionalCapabilitiesFromHdmlLLCVsadb(std::map<std::string, std::string>& result, ByteBuffer& aVsadbPacket);
+  static std::map<std::string, std::string> getAdditionalCapabilitiesFromVsadb(uint32_t vsadbId, ByteBuffer aVsadbPacket);
 };
 
 #endif /* __HDMI_EDID_SAD_HELPER_HPP__ */

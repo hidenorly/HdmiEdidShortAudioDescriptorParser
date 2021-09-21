@@ -43,13 +43,21 @@ encoding:PCM_24BIT channel:2 samplingRate:192000
 
 ```
 $ bin/sadParser -s 11,04,20
-encoding:COMPRESSED_14 channel:1 samplingRate:48000
-encoding:COMPRESSED_14 channel:2 samplingRate:48000
+encoding:COMPRESSED_15 channel:1 samplingRate:48000
+encoding:COMPRESSED_15 channel:2 samplingRate:48000
 bitRate=256000
 ```
 
-Note that COMPRESSED_14 means AudioFormat::ENCODING::COMPRESSED_AC3.
+Note that COMPRESSED_15 means AudioFormat::ENCODING::COMPRESSED_AC3.
 
+
+```
+$ bin/sadParser -v 000C03,01,02,03,04,05,06,07,08,fb,fa,f9,f8
+audioLatency = 498
+audioLatencyInterlace = 494
+videoLatency = 500
+videoLatencyInterlace = 496
+```
 
 # Please note that
 
@@ -66,3 +74,7 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/work/audioframework/lib
 ```
 export LD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:~/work/audioframework/lib
 ```
+
+# Reference
+
+* https://en.wikipedia.org/wiki/Extended_Display_Identification_Data
