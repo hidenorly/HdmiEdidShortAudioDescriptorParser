@@ -178,6 +178,9 @@ std::map<std::string, std::string> HdmiEdidSadHelper::getAdditionalCapabilities(
             result.insert_or_assign("JOC", ( aSadPacket[2] & HDMI_EDID_SAD_EXT_E_AC3_JOC ) ? "true" : "false" );
             result.insert_or_assign("JOC_DolbyAtmos", ( aSadPacket[2] & HDMI_EDID_SAD_EXT_E_AC3_ACMOD28 ) ? "true" : "false" );
             break;
+          case AudioFormat::ENCODING::COMPRESSED_AAC_LC:
+            result.insert_or_assign("channel_22.2ch", ( aSadPacket[2] & HDMI_EDID_SAD_EXT_AAC_LC_22CH ) ? "true" : "false" );
+            break;
           default:
             result.insert_or_assign("bitRate", std::to_string( (int)aSadPacket[2] * HDMI_EDID_SAD_BIT_RATE_DIVIDER ) );
             break;
