@@ -24,3 +24,24 @@ bool HdmiEdidDataBlock::parseHeader(uint8_t header, HdmiEdidDataBlock::BlockType
 
   return blockType == HdmiEdidDataBlock::BlockType::RESERVED ? false : true;
 }
+
+
+bool HdmiEdidDataBlock::trimHeader(ByteBuffer& dataBlockInclHeader)
+{
+  bool result = false;
+
+  if( !dataBlockInclHeader.empty() ){
+    BlockType blockType = BlockType::RESERVED;
+    int nDataLength = 0;
+
+    result = parseHeader( dataBlockInclHeader[0], blockType, nDataLength );
+    if( result ){
+      if( dataBlockInclHeader.size() >= ( nDataLength + 1 ) ){ // header size is 1 byte
+        dataBlockInclHeader.erase( dataBlockInclHeader.begin() + 0 ); // offset 0 is header
+        dataBlockInclHeader.resize( nDataLength ); // data is removed from last if size exceed as C++17 spec.
+      }
+    }
+  }
+
+  return result;
+}

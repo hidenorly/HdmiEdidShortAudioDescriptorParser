@@ -18,6 +18,7 @@
 #define __HDMI_EDID_DATA_BLOCK_HPP__
 
 #include <stdint.h>
+#include "Buffer.hpp"
 
 class HdmiEdidDataBlock
 {
@@ -33,6 +34,7 @@ public:
   };
 
   bool parseHeader(uint8_t header, BlockType& blockType, int& nLength);
+  bool trimHeader(ByteBuffer& dataBlockInclHeader);
 };
 
 #endif /* __HDMI_EDID_DATA_BLOCK_HPP__ */
