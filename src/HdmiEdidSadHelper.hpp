@@ -23,22 +23,6 @@
 #include <map>
 #include <string>
 
-class HdmiEdidDataBlock
-{
-public:
-  enum BlockType
-  {
-    RESERVED = 0,
-    AUDIO,
-    VIDEO,
-    VENDOR_SPECIFIC,
-    SPEAKER_ALLOCATION,
-    VESA_DISPLAY_TRANSFER_CHARACTERISTIC,
-  };
-
-  bool parseHeader(uint8_t header, BlockType& blockType, int& nLength);
-};
-
 class HdmiEdidSadHelper
 {
 public:

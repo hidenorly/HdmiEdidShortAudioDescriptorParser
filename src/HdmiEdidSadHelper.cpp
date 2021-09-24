@@ -17,15 +17,6 @@
 #include "HdmiEdidSadHelper.hpp"
 #include "HdmiEdidPrimitive.hpp"
 
-
-bool HdmiEdidDataBlock::parseHeader(uint8_t header, HdmiEdidDataBlock::BlockType& blockType, int& nLength)
-{
-  blockType = (HdmiEdidDataBlock::BlockType)( ( header & HDMI_EDID_DATA_BLOCK_TYPE ) >> HDMI_EDID_DATA_BLOCK_TYPE_SHIFT );
-  nLength = ( header & HDMI_EDID_DATA_BLOCK_SIZE );
-
-  return blockType == HdmiEdidDataBlock::BlockType::RESERVED ? false : true;
-}
-
 struct SadEncodingConversionTable
 {
 public:
