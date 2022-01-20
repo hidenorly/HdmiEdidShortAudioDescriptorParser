@@ -140,7 +140,13 @@ std::vector<AudioFormat> HdmiEdidSadHelper::getAudioFormatsFromSad(ByteBuffer aS
 
   std::vector<AudioFormat::ENCODING> encodings = getAudioEncodingsFromSad( aSadPacket );
   std::vector<int> samplingRates = getAudioSamplingRatesFromSad( aSadPacket);
+  if( samplingRates.empty() ){
+    samplingRates.push_back( 0 );
+  }
   std::vector<AudioFormat::CHANNEL> channels = getAudioChannelFromSad( aSadPacket);
+  if( channels.empty() ){
+    channels.push_back( AudioFormat::CHANNEL::CHANNEL_STEREO );
+  }
 
   for( AudioFormat::ENCODING anEncoding : encodings ){
     for( int aSamplingRate : samplingRates ){

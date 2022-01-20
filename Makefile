@@ -22,6 +22,7 @@ AFW_INC_DIR=$(AFW_DIR)/include
 AFW_LIB_DIR=$(AFW_DIR)/lib
 
 SAD_SRC_DIR ?= ./src
+SAD_INC_DIR ?= ./include
 SAD_LIB_DIR=./lib
 BIN_DIR=./bin
 OBJ_DIR=./out
@@ -58,7 +59,7 @@ $(SAD_SO_TARGET): $(SAD_HELPER_OBJS)
 
 $(SAD_HELPER_OBJS): $(SAD_HELPER_SRCS)
 	@[ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -I $(AFW_INC_DIR) -c $(SAD_SRC_DIR)/$(notdir $(@:.o=.cpp)) -o $@
+	$(CXX) $(CXXFLAGS) -I $(AFW_INC_DIR) -I $(SAD_INC_DIR) -c $(SAD_SRC_DIR)/$(notdir $(@:.o=.cpp)) -o $@
 
 -include $(SAD_HELPER_DEPS)
 
@@ -76,7 +77,7 @@ $(TEST_TARGET): $(TEST_OBJS)
 
 $(TEST_OBJS): $(TEST_SRCS)
 	@[ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -I $(AFW_INC_DIR) -I $(SAD_SRC_DIR) -c $(TEST_DIR)/$(notdir $(@:.o=.cpp)) -o $@
+	$(CXX) $(CXXFLAGS) -I $(AFW_INC_DIR)  -I $(SAD_INC_DIR) -c $(TEST_DIR)/$(notdir $(@:.o=.cpp)) -o $@
 
 
 # --- clean up ------------------------
